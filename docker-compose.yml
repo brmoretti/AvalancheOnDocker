@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  avalanche-l1:
+    build: .
+    container_name: avalanche-l1-local
+    ports:
+      # Primary node ports
+      - "9650:9650"   # API port
+      - "9651:9651"   # Staking port
+      - "9652:9652"   # Secondary node API
+      - "9654:9654"   # Secondary node API
+      - "9656:9656"   # Secondary node API
+      - "9658:9658"   # Secondary node API
+      # L1 specific port (may vary)
+      - "60172:60172" # L1 RPC endpoint
+    environment:
+      # Override these values as needed
+      - BLOCKCHAIN_NAME=myblockchain
+      - CHAIN_ID=888
+      - TOKEN_SYMBOL=TST
+      - TOKEN_NAME=TST Token
+    volumes:
+      # Persist Avalanche CLI data
+      - avalanche_data:/root/.avalanche-cli
+      # Optionally mount custom configs
+      # - ./configs:/app/configs
+    networks:
+      - avalanche-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+volumes:
+  avalanche_data:
+    driver: local
+
+networks:
+  avalanche-network:
+    driver: bridge
