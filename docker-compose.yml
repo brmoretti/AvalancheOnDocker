@@ -1,37 +1,46 @@
-version: '3.8'
-
 services:
   avalanche-l1:
     build: .
-    container_name: avalanche-l1
+    container_name: avalanche-l1-node
     ports:
-      # Avalanche primary network ports
+      # Primary node API port
       - "9650:9650"
+      # Staking port
       - "9651:9651"
+      # Additional Avalanche ports
       - "9652:9652"
       - "9654:9654"
       - "9656:9656"
       - "9658:9658"
-      # L1 RPC ports (dynamic range)
-      - "30000-40000:30000-40000"
+      # L1 node port (can vary)
+      - "60172:60172"
     environment:
-      - BLOCKCHAIN_NAME=myblockchain
-      - CHAIN_ID=888
-      - TOKEN_SYMBOL=TST
-      - TOKEN_NAME=TST Token
-      - VALIDATOR_MANAGER_OWNER=ewoq
+      # Load from default.env
+      - BLOCKCHAIN_NAME=${BLOCKCHAIN_NAME:-myblockchain}
+      - CHAIN_ID=${CHAIN_ID:-888}
+      - TOKEN_SYMBOL=${TOKEN_SYMBOL:-TST}
+      - TOKEN_NAME=${TOKEN_NAME:-TST Token}
+    env_file:
+      - configs/default.env
     volumes:
-      # Persist Avalanche CLI data
-      - avalanche_data:/root/.avalanche-cli
-      # Optional: Mount logs for easier access
+      # Mount logs directory for persistence
       - ./logs:/app/logs
+      # Mount Avalanche CLI data directory for blockchain persistence
+      - avalanche-data:/root/.avalanche-cli
+      # Mount home directory for avalanche CLI state
+      - avalanche-home:/root
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9650/ext/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    stdin_open: true
+    tty: true
+    networks:
+      - avalanche-network
+
+networks:
+  avalanche-network:
+    driver: bridge
 
 volumes:
-  avalanche_data:
+  avalanche-data:
+    driver: local
+  avalanche-home:
+    driver: local
